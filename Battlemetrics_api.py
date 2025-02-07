@@ -2,6 +2,8 @@ from battlemetrics import Battlemetrics
 import asyncio
 from dotenv import load_dotenv
 import os
+import time
+
 
 load_dotenv()
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -27,11 +29,12 @@ server = asyncio.run(bmapi.server.info(Current_server_ID))
 current_map = server["data"]["attributes"]["details"]["map"]
 
 factions_long = [server["data"]["attributes"]["details"]["squad_teamOne"],
-                 server["data"]["attributes"]["details"]["squad_teamTwo"]]
+               server["data"]["attributes"]["details"]["squad_teamTwo"]]
 
 # Get Faction 
 factions_short = [factions_long[0].split("_")[0], 
-                  factions_long[1].split("_")[0]]
+               factions_long[1].split("_")[0]]
 
 if __name__ == "__main__":
+     print(current_map)
      print(factions_long)

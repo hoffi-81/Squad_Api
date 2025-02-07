@@ -17,9 +17,5 @@ for unit_name in factions_long:
           asset_names.append(asset_names_temp)
           
 
-
-#mapIcon
-
 if __name__ == "__main__":
      print(asset_names[0][1])
-     # print(asset_names)
