@@ -6,8 +6,9 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtGui import QPixmap
-from Battlemetrics_api import factions_short
+from Battlemetrics_api import factions_short, server_info, current_map_short, gamemode
 from Squadutils_api import asset_names
+from Get_cfg_data import read_config
 import pyperclip
 import os
 import psutil
@@ -17,15 +18,23 @@ import time
 
 
 
+# ========== Todo ==========
+# 1. Display Server Name
+# 2. Display Current Map
 
-def find_image_path(filename, base_folder="media"):
-     '''
-     Getting the top folder where the icon is located
-     '''
+
+
+
+def find_image_path(filename, base_folder="media") -> None:
+     """
+     Find the path of an image file in the specified base folder.
+
+     Getting the top folder where the icon is located.
+     """
      for root, dirs, files in os.walk(base_folder):  # Walk through all subfolders
           if filename in files:
                return os.path.join(root, filename)
-     return None
+
 
 class UnitAssetsViewer(QMainWindow):
      def __init__(self):
@@ -43,7 +52,7 @@ class UnitAssetsViewer(QMainWindow):
                "assets": asset_names[1]
           }
 
-          self.setWindowTitle("Squad assets to Clipboard")
+          self.setWindowTitle("Dynamic Hotkey for Squad Assets")
           self.setGeometry(100, 100, 600, 400)
 
           # Main widget
@@ -63,6 +72,19 @@ class UnitAssetsViewer(QMainWindow):
 
           # Add headers for each column
           self.add_header(table_layout, data_1st_row["faction"], 0, 0)
+          # self.add_header(table_layout, server_info, -1, 1)
+
+          label1 = QLabel(server_info, self)
+          label2 = QLabel("{} - {}".format(current_map_short, gamemode), self)
+          label1.setStyleSheet("color: #eceff4; font-weight: bold; font-size: 8px; padding-top: 5; padding-bottom: 10;")
+          label2.setStyleSheet("color: #eceff4; font-weight: bold; font-size: 9px; padding-top: 35; padding-bottom: 10; Background-color: rgb(0,0,0,0);")
+          table_layout.addWidget(label1, 0, 0, 1, 2, alignment=Qt.AlignCenter)
+          table_layout.addWidget(label2, 0, 0, 1, 2, alignment=Qt.AlignCenter)
+
+
+
+
+
           self.add_header(table_layout, data_2nd_row["faction"], 0, 1)
 
           # Populate the first column with assets from faction 1
@@ -73,6 +95,12 @@ class UnitAssetsViewer(QMainWindow):
 
           # Set the table container in the scroll area
           scroll_area.setWidget(table_container)
+
+          # table_layout.setColumnStretch(0, 10)
+          # table_layout.setColumnStretch(1, 1)
+          # table_layout.setColumnStretch(2, 10)  
+
+
 
           # Set the layout for the main widget
           layout = QVBoxLayout(main_widget)
@@ -88,10 +116,10 @@ class UnitAssetsViewer(QMainWindow):
           if header_icon:
                header_icon = header_icon.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)
                header_icon_lb.setPixmap(header_icon)
-          header.setStyleSheet("color: #eceff4; font-weight: bold; font-size: 14px; padding: 30;")
-          layout.addWidget(header_icon_lb, row, col)
-          layout.addWidget(header, row + 1, col)
-
+               header_icon_lb.setStyleSheet("padding-top: 20px;")
+          header.setStyleSheet("color: #eceff4; font-weight: bold; font-size: 14px; padding-top: 5; padding-bottom: 10;")
+          layout.addWidget(header_icon_lb, row, col, alignment=Qt.AlignCenter)
+          layout.addWidget(header, row + 1, col, alignment=Qt.AlignCenter)
      def populate_column(self, layout, assets, start_row, col):
           for i, (vehicle, icon) in enumerate(zip(assets[0], assets[1])):
                i += 1
@@ -129,17 +157,12 @@ class UnitAssetsViewer(QMainWindow):
           and pastes it into Notepad if Notepad is open.
           '''
           # Copy to clipboard
-          pyperclip.copy(name)
-          # print(name)
-          # # Play sound
-          # sound_path = 'media/click.wav'
-          # if os.path.exists(sound_path):
-          #      QSound.play(sound_path)
+          pyperclip.copy('CreateSquad "{}" 1'.format(name))
 
           # Check if Notepad is running
           notepad_running = False
           for process in psutil.process_iter(attrs=['pid', 'name']):
-               if "notepad++.exe" in process.info['name'].lower():
+               if "notepad++.exe" in process.info['name'].lower(): #notepad++.exe
                     notepad_running = True
                     break
 
@@ -155,9 +178,13 @@ class UnitAssetsViewer(QMainWindow):
                     if notepad_window:
                          # Bring Notepad to the foreground
                          notepad_window.activate()
-                         time.sleep(0.1)  # Wait a bit for the window to activate
-                         keyboard.write("CreateSquad {}".format(name))  # Simulates real typing
-                         keyboard.press_and_release("enter") # Presses and releases the Enter key
+                         time.sleep(0)  # Wait a bit for the window to activate
+                       #  if not read_config()["debug_mode"]:
+                         # keyboard.press_and_release(read_config()["button_cmd_line"])
+                         keyboard.send("l")
+                         keyboard.press_and_release("ctrl+v")
+                         keyboard.press_and_release("enter")
+
 
                except Exception as e:
                     print(f"Error switching to Notepad: {e}")
